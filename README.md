@@ -18,6 +18,6 @@ Directly run the main.py, then the algrithm will be tested on scenario 'simple_t
 
 ## Note
 
-We have train the agent on scenario 'simple_tag', but the model we provide is not the best because we didn't have any GUP, you can keep training it for better performence.
+We have train the agent on scenario 'simple_tag', but the model we provide is not the best because we don't want to waste time on training, you can keep training it for better performence.
 
 The default setting of Multi-Agent Particle Environment(MPE) is sparse reward, you can change it to dense reward in multiagent-particle-envs/multiagent/scenarios/simple_tag.py/adversary_reward().
