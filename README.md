@@ -11,7 +11,7 @@ This is a pytorch implementation of MADDPG on [Multi-Agent Particle Environment(
 ## Quick Start
 
 ```shell
-$ python main.py ----scenario-name=simple_tag evaluate-episodes=10
+$ python main.py --scenario-name=simple_tag --evaluate-episodes=10
 ```
 
 Directly run the main.py, then the algrithm will be tested on scenario 'simple_tag' for 10 episodes, using the pretrained model.
