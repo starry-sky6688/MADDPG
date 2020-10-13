@@ -48,10 +48,10 @@ class MADDPG:
     # soft update
     def _soft_update_target_network(self):
         for target_param, param in zip(self.actor_target_network.parameters(), self.actor_network.parameters()):
-            target_param.data.copy_((1 - self.args.tau) * param.data + self.args.tau * target_param.data)
+            target_param.data.copy_((1 - self.args.tau) * target_param.data + self.args.tau * param.data)
 
         for target_param, param in zip(self.critic_target_network.parameters(), self.critic_network.parameters()):
-            target_param.data.copy_((1 - self.args.tau) * param.data + self.args.tau * target_param.data)
+            target_param.data.copy_((1 - self.args.tau) * target_param.data + self.args.tau * param.data)
 
     # update the network
     def train(self, transitions, other_agents):
