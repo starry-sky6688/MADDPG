@@ -59,7 +59,7 @@ class Runner:
                 plt.ylabel('average returns')
                 plt.savefig(self.save_path + '/plt.png', format='png')
             self.noise = max(0.05, self.noise - 0.0000005)
-            self.epsilon = max(0.05, self.noise - 0.0000005)
+            self.epsilon = max(0.05, self.epsilon - 0.0000005)
             np.save(self.save_path + '/returns.pkl', returns)
 
     def evaluate(self):
