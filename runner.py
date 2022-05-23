@@ -69,7 +69,7 @@ class Runner:
             s = self.env.reset()
             rewards = 0
             for time_step in range(self.args.evaluate_episode_len):
-                self.env.render()
+                # self.env.render() 为了跑的快一点，先不要渲染了。
                 actions = []
                 with torch.no_grad():
                     for agent_id, agent in enumerate(self.agents):
