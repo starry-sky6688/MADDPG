@@ -1,0 +1,7 @@
+setup.py
+multiagent.egg-info/PKG-INFO
+multiagent.egg-info/SOURCES.txt
+multiagent.egg-info/dependency_links.txt
+multiagent.egg-info/not-zip-safe
+multiagent.egg-info/requires.txt
+multiagent.egg-info/top_level.txt
