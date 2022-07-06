@@ -1,3 +1,4 @@
+LICENSE.txt
 setup.py
 multiagent.egg-info/PKG-INFO
 multiagent.egg-info/SOURCES.txt
