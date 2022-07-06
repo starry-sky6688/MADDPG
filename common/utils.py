@@ -47,7 +47,11 @@ def make_env(args):
     args.obs_shape = [env.observation_space[i].shape[0] for i in range(args.n_agents)]  # 每一维代表该agent的obs维度
     action_shape = []
     for content in env.action_space:
-        action_shape.append(content.n)
+        # print(content, type(content))
+        try:
+            action_shape.append(content.n)
+        except Exception:
+            action_shape.append(content.num_discrete_space)
     args.action_shape = action_shape[:args.n_agents]  # 每一维代表该agent的act维度
     args.high_action = 1
     args.low_action = -1

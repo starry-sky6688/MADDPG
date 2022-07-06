@@ -25,6 +25,10 @@ class MADDPG:
         self.actor_optim = torch.optim.Adam(self.actor_network.parameters(), lr=self.args.lr_actor)
         self.critic_optim = torch.optim.Adam(self.critic_network.parameters(), lr=self.args.lr_critic)
 
+        #record loss
+        self.q_loss = None
+        self.a_loss = None
+
         # create the dict for store the model
         if not os.path.exists(self.args.save_dir):
             os.mkdir(self.args.save_dir)
@@ -88,6 +92,11 @@ class MADDPG:
         # 重新选择联合动作中当前agent的动作，其他agent的动作不变
         u[self.agent_id] = self.actor_network(o[self.agent_id])
         actor_loss = - self.critic_network(o, u).mean()
+
+        # record the loss
+        self.a_loss = actor_loss
+        self.q_loss = critic_loss
+
         # if self.agent_id == 0:
         #     print('critic_loss is {}, actor_loss is {}'.format(critic_loss, actor_loss))
         # update the network
