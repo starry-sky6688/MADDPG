@@ -35,7 +35,7 @@ class Task:
         args.scenario_name = self.scenario_name
         self.env, self.args = me.make_env(args=args)
         self.buffer = Buffer(args)
-
+        self.state = None
         self.agents = [Agent(agent_id=agent_id, args=args) for agent_id in range(self.args.n_agents)]
 
     '''
@@ -69,40 +69,43 @@ class Task:
 
         return episodes
     '''
-    def run(self):
+    def run(self, time_step, centralized_q):
         returns = 0
-        for time_step in range(self.inner_times):
-            # reset the environment
-            if time_step % self.episode_limit == 0:
-                s = self.env.reset()
-            u = []
-            actions = []
-            with torch.no_grad():
-                for agent_id, agent in enumerate(self.agents):
-                    action = agent.select_action(s[agent_id], self.noise, self.epsilon)
-                    u.append(action)
-                    actions.append(action)
-            for i in range(self.args.n_agents, self.args.n_players):
-                actions.append([0, np.random.rand() * 2 - 1, 0, np.random.rand() * 2 - 1, 0])
-            s_next, r, done, info = self.env.step(actions)
-            self.buffer.store_episode(s[:self.args.n_agents], u, r[:self.args.n_agents], s_next[:self.args.n_agents])
-            s = s_next
-            if self.buffer.current_size >= self.args.batch_size:
-                transitions = self.buffer.sample(self.args.batch_size)
-                for agent in self.agents:
-                    other_agents = self.agents.copy()
-                    other_agents.remove(agent)
-                    agent.learn(transitions, other_agents)
-            self.noise = max(0.05, self.noise - 0.0000005)
-            self.epsilon = max(0.05, self.epsilon - 0.0000005)
-            if (time_step + 1) == self.inner_times:
-                returns = self.evaluate()
-        a_loss = []
-        q_loss = []
-        for agent in self.agents:
-            a_loss.append(agent.policy.a_loss.detach().numpy())
-            q_loss.append(agent.policy.q_loss.detach().numpy())
-        return returns, np.mean(a_loss), np.mean(q_loss)
+        # reset the environment
+        if time_step % self.episode_limit == 0:
+            s = self.env.reset()
+            self.state = s
+        u = []
+        actions = []
+        with torch.no_grad():
+            for agent_id, agent in enumerate(self.agents):
+                action = agent.select_action(self.state[agent_id], self.noise, self.epsilon)
+                u.append(action)
+                actions.append(action)
+        for i in range(self.args.n_agents, self.args.n_players):
+            actions.append([0, np.random.rand() * 2 - 1, 0, np.random.rand() * 2 - 1, 0])
+        s_next, r, done, info = self.env.step(actions)
+        self.buffer.store_episode(self.state[:self.args.n_agents], u, r[:self.args.n_agents], s_next[:self.args.n_agents])
+        s = s_next
+        self.state = s
+        self.noise = max(0.05, self.noise - 0.0000005)
+        self.epsilon = max(0.05, self.epsilon - 0.0000005)
+        if self.buffer.current_size >= self.args.batch_size:
+            transitions = self.buffer.sample(self.args.batch_size)
+            task_q_loss = None
+            for agent in self.agents:
+                other_agents = self.agents.copy()
+                other_agents.remove(agent)
+                o, u = agent.learn(transitions, other_agents)
+                target_q = agent.policy.critic_network(o, u).detach()
+                q_value = centralized_q(o, u)
+                # mean squared error
+                q_loss = (target_q - q_value).pow(2).mean()
+                if task_q_loss is None:
+                    task_q_loss = q_loss
+                else:
+                    task_q_loss = task_q_loss.add(q_loss)
+            return task_q_loss
 
     def evaluate(self):
         returns = []
