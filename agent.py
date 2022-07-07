@@ -24,5 +24,5 @@ class Agent:
         return u.copy()
 
     def learn(self, transitions, other_agents):
-        self.policy.train(transitions, other_agents)
+        return self.policy.train(transitions, other_agents)
 

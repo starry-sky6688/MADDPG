@@ -1,6 +1,7 @@
 import torch
 import os
 from maddpg.actor_critic import Actor, Critic
+import copy
 
 
 class MADDPG:
@@ -85,6 +86,8 @@ class MADDPG:
             target_q = (r.unsqueeze(1) + self.args.gamma * q_next).detach()
 
         # the q loss
+        o_copy = copy.deepcopy(o)
+        u_copy = copy.deepcopy(u)
         q_value = self.critic_network(o, u)
         critic_loss = (target_q - q_value).pow(2).mean()
 
@@ -111,6 +114,7 @@ class MADDPG:
         if self.train_step > 0 and self.train_step % self.args.save_rate == 0:
             self.save_model(self.train_step)
         self.train_step += 1
+        return o_copy, u_copy
 
     def save_model(self, train_step):
         num = str(train_step // self.args.save_rate)
