@@ -18,4 +18,4 @@ if __name__ == '__main__':
         print('Average returns is', returns)
         
     else:
-        runner.run()
+        runner. run()
