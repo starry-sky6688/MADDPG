@@ -2,6 +2,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+def smooth(scalars, weight=0.6):
+    last = scalars[0]
+    smoothed = list()
+    for point in scalars:
+        smoothed_val = last * weight + (1 - weight) * point
+        smoothed.append(smoothed_val)
+        last = smoothed_val
+    return smoothed
+
+
 def analyze():
     result = np.load("../MAML_result/training_info.npy")
     inner_result = np.load("../MAML_result/inner_returns.npy")

@@ -18,10 +18,10 @@ class MetaLearner:
         self.target_centralized_q = Critic(args=args)
         self.centralized_q_optim = torch.optim.Adam(self.centralized_q.parameters(), lr=self.outer_lr)
 
-        args.scenario_name = "simple_spread"
-        _, args = me.make_env(args=args)
-
-        self.args = args
+        # args.scenario_name = "simple_spread"
+        # _, args = me.make_env(args=args)
+        # 
+        # self.args = args
         self.train_step = 0
         self.total_training_step = 500
         self.update_times = 1000
@@ -50,7 +50,7 @@ class MetaLearner:
                         #     target_param.data.copy_(
                         #         (1 - self.args.tau) * target_param.data + self.args.tau * param.data)
                         # a.policy.critic_target_network.load_state_dict(self.centralized_q.state_dict())
-                        if time_step ==0:
+                        if time_step == 0:
                             a.policy.critic_target_network.load_state_dict(self.centralized_q.state_dict())
 
                         a.policy.critic_network.load_state_dict(self.centralized_q.state_dict())
