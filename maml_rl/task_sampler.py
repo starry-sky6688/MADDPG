@@ -6,7 +6,7 @@ import time
 class TaskSampler:
     def __init__(self, args, num_agents, batch_size):
         self.args = args
-        self.scenarios_names = ["simple_spread"]
+        self.scenarios_names = ["simple_speaker_listener"]
         # self.scenarios_names = ["simple", "simple_adversary", "simple_crypto", "simple_push", "simple_reference",
         #                         "simple_speaker_listener", "simple_spread", "simple_tag", "simple_world_comm"]
         self.num_agents = num_agents
