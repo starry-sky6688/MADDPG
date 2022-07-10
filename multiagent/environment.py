@@ -58,7 +58,9 @@ class MultiAgentEnv(gym.Env):
             if len(total_action_space) > 1:
                 # all action spaces are discrete, so simplify to MultiDiscrete action space
                 if all([isinstance(act_space, spaces.Discrete) for act_space in total_action_space]):
-                    act_space = MultiDiscrete([[0, act_space.n - 1] for act_space in total_action_space])
+                    # https://github.com/openai/multiagent-particle-envs/issues/19
+                    # act_space = MultiDiscrete([[0, act_space.n - 1] for act_space in total_action_space])
+                    act_space = spaces.Tuple((total_action_space[0], total_action_space[1]))
                 else:
                     act_space = spaces.Tuple(total_action_space)
                 self.action_space.append(act_space)
@@ -153,6 +155,9 @@ class MultiAgentEnv(gym.Env):
                 act.append(action[index:(index+s)])
                 index += s
             action = act
+        # https://github.com/openai/multiagent-particle-envs/issues/19
+        elif isinstance(action_space, spaces.Tuple):
+            action = [action[0: action_space.spaces[0].n], action[action_space.spaces[0].n:]]
         else:
             action = [action]
 
