@@ -1,6 +1,8 @@
 import numpy as np
 import inspect
 import functools
+from multiagent.multi_discrete import MultiDiscrete
+from gym import spaces
 
 
 def store_args(method):
@@ -48,10 +50,13 @@ def make_env(args):
     action_shape = []
     for content in env.action_space:
         # print(content, type(content))
-        try:
-            action_shape.append(content.n)
-        except Exception:
+        if isinstance(content, MultiDiscrete):
+            # https://github.com/openai/multiagent-particle-envs/issues/19
             action_shape.append(content.num_discrete_space)
+        elif isinstance(content, spaces.Tuple):
+            action_shape.append(content.spaces[0].n + content.spaces[1].n)
+        else:
+            action_shape.append(content.n)
     args.action_shape = action_shape[:args.n_agents]  # 每一维代表该agent的act维度
     args.high_action = 1
     args.low_action = -1
