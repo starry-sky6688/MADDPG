@@ -34,9 +34,9 @@ class Task:
         # self.envs = SubprocVecEnv(env_factorys, queue_=self.queue)
         args.scenario_name = self.scenario_name
         self.env, self.args = me.make_env(args=args)
-        self.buffer = Buffer(args)
+        self.buffer = Buffer(args=self.args)
         self.state = None
-        self.agents = [Agent(agent_id=agent_id, args=args) for agent_id in range(self.args.n_agents)]
+        self.agents = [Agent(agent_id=agent_id, args=self.args) for agent_id in range(self.args.n_agents)]
 
     '''
     # not used for now
