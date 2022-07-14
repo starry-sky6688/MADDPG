@@ -25,8 +25,11 @@ class Actor(nn.Module):
 class Critic(nn.Module):
     def __init__(self, args):
         super(Critic, self).__init__()
-        self.max_action = args.high_action
-        self.fc1 = nn.Linear(sum(args.obs_shape) + sum(args.action_shape), 64)
+        # args.high_action都是1，没啥影响
+        self.max_action = args.high_action if hasattr(args, "high_action") else 1
+        self.args = args
+        # self.fc1 = nn.Linear(sum(args.obs_shape) + sum(args.action_shape), 64)
+        self.fc1 = nn.Linear(72, 64)
         self.fc2 = nn.Linear(64, 64)
         self.fc3 = nn.Linear(64, 64)
         self.q_out = nn.Linear(64, 1)
@@ -36,7 +39,9 @@ class Critic(nn.Module):
         for i in range(len(action)):
             action[i] /= self.max_action
         action = torch.cat(action, dim=1)
-        x = torch.cat([state, action], dim=1)
+        # padding 不够长度就补0
+        zeros = torch.tensor([[0 for _ in range(72 - (action.size(dim=1) + state.size(dim=1)))] for _ in range(256)])
+        x = torch.cat([state, action, zeros], dim=1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))

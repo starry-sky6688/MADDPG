@@ -3,6 +3,7 @@ from torch.nn.utils.convert_parameters import vector_to_parameters, parameters_t
 from maddpg.actor_critic import Critic
 import numpy as np
 import common.utils as me
+import time
 
 
 class MetaLearner:
@@ -49,10 +50,8 @@ class MetaLearner:
                         #                                self.centralized_q.parameters()):
                         #     target_param.data.copy_(
                         #         (1 - self.args.tau) * target_param.data + self.args.tau * param.data)
-                        # a.policy.critic_target_network.load_state_dict(self.centralized_q.state_dict())
                         if time_step == 0:
                             a.policy.critic_target_network.load_state_dict(self.centralized_q.state_dict())
-
                         a.policy.critic_network.load_state_dict(self.centralized_q.state_dict())
                     # inner training
                     inner_returns, task_q_loss = t.run(outer_time=i, time_step=time_step, centralized_q=self.centralized_q, inner_returns=inner_returns)
