@@ -8,7 +8,7 @@ import time
 
 class MetaLearner:
 
-    def __init__(self, args, sampler, gamma=0.95, outer_lr=1e-6, tau=1.0, device='cpu'):
+    def __init__(self, args, sampler, gamma=0.95, outer_lr=1e-5, tau=1.0, device='cpu'):
         self.task_sampler = sampler
         self.gamma = gamma
         self.outer_lr = outer_lr
@@ -21,10 +21,10 @@ class MetaLearner:
 
         # args.scenario_name = "simple_spread"
         # _, args = me.make_env(args=args)
-        #
+        # 
         # self.args = args
         self.train_step = 0
-        self.total_training_step = 20000
+        self.total_training_step = 500
         self.update_times = 1000
         self.episode_limit = 100
         self.num_tasks = 4
@@ -32,10 +32,14 @@ class MetaLearner:
 
     def train(self):
         result = []
+        inner_returns=[]
+        inner_result = []
+        c=0
         for i in range(self.total_training_step):
             print("Meta Training " + str(i + 1) + " sampling " + str(self.num_tasks) + " tasks")
             tasks = self.task_sampler.sample(num_tasks=self.num_tasks)
             for time_step in range(self.update_times):
+                c+=1
                 total_q_loss = None
                 for j, t in enumerate(tasks):
                     # inner training
@@ -50,11 +54,14 @@ class MetaLearner:
                             a.policy.critic_target_network.load_state_dict(self.centralized_q.state_dict())
                         a.policy.critic_network.load_state_dict(self.centralized_q.state_dict())
                     # inner training
-                    task_q_loss = t.run(time_step=time_step, centralized_q=self.centralized_q)
+                    inner_returns, task_q_loss = t.run(outer_time=i, time_step=time_step, centralized_q=self.centralized_q, inner_returns=inner_returns)
                     if total_q_loss is None:
                         total_q_loss = task_q_loss
                     else:
                         total_q_loss = total_q_loss.add(task_q_loss)
+                if time_step > 0 and time_step % 100 == 0 and i % 10 == 0:
+                    inner_result.append([c, np.mean(inner_returns)])
+                    np.save("./MAML_result/inner_returns.npy", np.array(inner_result))
                 if total_q_loss is not None:
                     self.centralized_q_optim.zero_grad()
                     total_q_loss.backward()

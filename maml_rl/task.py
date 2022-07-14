@@ -7,7 +7,6 @@ from maml_rl.BatchEpisode import BatchEpisodes
 from agent import Agent
 from common.replay_buffer import Buffer
 
-
 def make_env(scenario_name, benchmark=False):
     def _make_env():
         return me.make_env(scenario_name=scenario_name, benchmark=benchmark)
@@ -69,7 +68,7 @@ class Task:
 
         return episodes
     '''
-    def run(self, time_step, centralized_q):
+    def run(self, outer_time, time_step, centralized_q, inner_returns):
         returns = 0
         # reset the environment
         if time_step % self.episode_limit == 0:
@@ -90,9 +89,9 @@ class Task:
         self.state = s
         self.noise = max(0.05, self.noise - 0.0000005)
         self.epsilon = max(0.05, self.epsilon - 0.0000005)
+        task_q_loss = None
         if self.buffer.current_size >= self.args.batch_size:
             transitions = self.buffer.sample(self.args.batch_size)
-            task_q_loss = None
             for agent in self.agents:
                 other_agents = self.agents.copy()
                 other_agents.remove(agent)
@@ -105,13 +104,17 @@ class Task:
                     task_q_loss = q_loss
                 else:
                     task_q_loss = task_q_loss.add(q_loss)
-            return task_q_loss
+
+        if time_step > 0 and time_step % self.evaluate_rate == 0 and outer_time % (self.evaluate_rate/10) == 0:
+            inner_returns.append(self.evaluate())
+        
+        return inner_returns, task_q_loss
 
     def evaluate(self):
         returns = []
         for episode in range(self.args.evaluate_episodes):
             # reset the environment
-            s = self.env.reset()
+            s = self.evaluate_env.reset()
             rewards = 0
             for time_step in range(self.args.evaluate_episode_len):
                 # self.env.render() 为了跑的快一点，先不要渲染了。
@@ -122,7 +125,7 @@ class Task:
                         actions.append(action)
                 for i in range(self.args.n_agents, self.args.n_players):
                     actions.append([0, np.random.rand() * 2 - 1, 0, np.random.rand() * 2 - 1, 0])
-                s_next, r, done, info = self.env.step(actions)
+                s_next, r, done, info = self.evaluate_env.step(actions)
                 rewards += r[0]
                 s = s_next
             returns.append(rewards)
