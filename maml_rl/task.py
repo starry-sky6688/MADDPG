@@ -15,7 +15,7 @@ def make_env(scenario_name, benchmark=False):
 
 
 class Task:
-    def __init__(self, scenario_name, num_agents, batch_size, args, num_workers=mp.cpu_count(), benchmark=False):
+    def __init__(self, scenario_name, num_agents, batch_size, args, input_shape=0, num_workers=mp.cpu_count(), benchmark=False, ):
         self.bk_args = args
         self.scenario_name = scenario_name
         self.batch_size = batch_size
@@ -36,7 +36,8 @@ class Task:
         self.evaluate_env, _ = me.make_env(args=args)
         self.buffer = Buffer(args)
         self.state = None
-        self.agents = [Agent(agent_id=agent_id, args=args) for agent_id in range(self.args.n_agents)]
+        self.input_shape = input_shape
+        self.agents = [Agent(agent_id=agent_id, args=args, input_shape=self.input_shape) for agent_id in range(self.args.n_agents)]
         self.evaluate_rate=100
     '''
     # not used for now
@@ -106,8 +107,8 @@ class Task:
                 else:
                     task_q_loss = task_q_loss.add(q_loss)
 
-        if time_step > 0 and time_step % self.evaluate_rate == 0 and outer_time % (self.evaluate_rate/10) == 0:
-            inner_returns.append(self.evaluate())
+        # if time_step > 0 and time_step % self.evaluate_rate == 0 and outer_time % (self.evaluate_rate/10) == 0:
+        #     inner_returns.append(self.evaluate())
         
         return inner_returns, task_q_loss
 

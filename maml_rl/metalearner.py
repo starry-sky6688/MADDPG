@@ -3,6 +3,7 @@ from torch.nn.utils.convert_parameters import vector_to_parameters, parameters_t
 from maddpg.actor_critic import Critic
 import numpy as np
 import common.utils as me
+from maml_rl.centralized_q import Centralized_q
 
 
 class MetaLearner:
@@ -14,10 +15,10 @@ class MetaLearner:
         self.tau = tau
         # self.to(device)
 
-        self.centralized_q = Critic(args=args)
-        self.target_centralized_q = Critic(args=args)
+        self.centralized_q = Centralized_q(args=args, task_sampler=self.task_sampler)
+        self.target_centralized_q = Centralized_q(args=args, task_sampler=self.task_sampler)
         self.centralized_q_optim = torch.optim.Adam(self.centralized_q.parameters(), lr=self.outer_lr)
-
+        self.input_shape = self.centralized_q.input_shape
         # args.scenario_name = "simple_spread"
         # _, args = me.make_env(args=args)
         # 
@@ -36,7 +37,7 @@ class MetaLearner:
         c=0
         for i in range(self.total_training_step):
             print("Meta Training " + str(i + 1) + " sampling " + str(self.num_tasks) + " tasks")
-            tasks = self.task_sampler.sample(num_tasks=self.num_tasks)
+            tasks = self.task_sampler.sample(num_tasks=self.num_tasks, input_shape=self.input_shape)
             for time_step in range(self.update_times):
                 c+=1
                 total_q_loss = None
@@ -60,9 +61,9 @@ class MetaLearner:
                         total_q_loss = task_q_loss
                     else:
                         total_q_loss = total_q_loss.add(task_q_loss)
-                if time_step > 0 and time_step % 100 == 0 and i % 10 == 0:
-                    inner_result.append([c, np.mean(inner_returns)])
-                    np.save("./MAML_result/inner_returns.npy", np.array(inner_result))
+                # if time_step > 0 and time_step % 250 == 0 and i % 100 == 0:
+                #     inner_result.append([c, np.mean(inner_returns)])
+                #     np.save("./MAML_result/inner_returns.npy", np.array(inner_result))
                 if total_q_loss is not None:
                     self.centralized_q_optim.zero_grad()
                     total_q_loss.backward()

@@ -5,10 +5,10 @@ from maddpg.maddpg import MADDPG
 
 
 class Agent:
-    def __init__(self, agent_id, args):
+    def __init__(self, agent_id, args, input_shape=0):
         self.args = args
         self.agent_id = agent_id
-        self.policy = MADDPG(args, agent_id)
+        self.policy = MADDPG(args, agent_id, input_shape)
 
     def select_action(self, o, noise_rate, epsilon):
         if np.random.uniform() < epsilon:
