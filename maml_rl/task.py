@@ -35,14 +35,9 @@ class Task:
         self.env, self.args = me.make_env(args=args)
         self.buffer = Buffer(args=self.args)
         self.state = None
-<<<<<<< HEAD
         self.input_shape = input_shape
         self.agents = [Agent(agent_id=agent_id, args=args, input_shape=self.input_shape) for agent_id in range(self.args.n_agents)]
         self.evaluate_rate=100
-=======
-        self.agents = [Agent(agent_id=agent_id, args=self.args) for agent_id in range(self.args.n_agents)]
-
->>>>>>> master
     '''
     # not used for now
     def sample(self, params=None, gamma=0.95, device='cpu'):
