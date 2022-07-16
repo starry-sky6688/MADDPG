@@ -3,11 +3,7 @@ from torch.nn.utils.convert_parameters import vector_to_parameters, parameters_t
 from maddpg.actor_critic import Critic
 import numpy as np
 import common.utils as me
-<<<<<<< HEAD
 from maml_rl.centralized_q import Centralized_q
-=======
-import time
->>>>>>> master
 
 
 class MetaLearner:
