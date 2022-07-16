@@ -1,34 +1,27 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import common.utils as me
+from multiagent.multi_discrete import MultiDiscrete
+import copy
 
-
-# define the actor network
-class Actor(nn.Module):
-    def __init__(self, args, agent_id):
-        super(Actor, self).__init__()
-        self.max_action = args.high_action
-        self.fc1 = nn.Linear(args.obs_shape[agent_id], 64)
-        self.fc2 = nn.Linear(64, 64)
-        self.fc3 = nn.Linear(64, 64)
-        self.action_out = nn.Linear(64, args.action_shape[agent_id])
-
-    def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        actions = self.max_action * torch.tanh(self.action_out(x))
-
-        return actions
-
-
-class Critic(nn.Module):
-    def __init__(self, args, input_shape=0):
-        super(Critic, self).__init__()
+class Centralized_q(nn.Module):
+    def __init__(self, args, task_sampler):
+        super(Centralized_q, self).__init__()
         self.max_action = args.high_action if hasattr(args, "high_action") else 1
-        self.input_shape = input_shape
-        if self.input_shape == 0:
-            self.input_shape = sum(args.obs_shape) + sum(args.action_shape)
+        Args=[]
+        for scenario in task_sampler.scenarios_names:
+            arg = copy.copy(args)
+            arg.scenario_name = scenario
+            env, arg = me.make_env(args=arg)
+            Args.append(arg)
+
+        Shape=[]
+        for a in Args:
+            Shape.append(sum(a.obs_shape) + sum(a.action_shape))
+
+        input_shape = max(Shape)
+        self.input_shape=input_shape
         self.fc1 = nn.Linear(self.input_shape, 64)
         self.fc2 = nn.Linear(64, 64)
         self.fc3 = nn.Linear(64, 64)
@@ -44,7 +37,6 @@ class Critic(nn.Module):
             if len(x[0])==self.input_shape:
                 break
             x = torch.cat((x, torch.tensor([[0]]*256)), dim=1)
-
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))

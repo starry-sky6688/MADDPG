@@ -116,7 +116,7 @@ class Task:
         returns = []
         for episode in range(self.args.evaluate_episodes):
             # reset the environment
-            s = self.evaluate_env.reset()
+            s = self.env.reset()
             rewards = 0
             for time_step in range(self.args.evaluate_episode_len):
                 # self.env.render() 为了跑的快一点，先不要渲染了。
@@ -127,7 +127,7 @@ class Task:
                         actions.append(action)
                 for i in range(self.args.n_agents, self.args.n_players):
                     actions.append([0, np.random.rand() * 2 - 1, 0, np.random.rand() * 2 - 1, 0])
-                s_next, r, done, info = self.evaluate_env.step(actions)
+                s_next, r, done, info = self.env.step(actions)
                 rewards += r[0]
                 s = s_next
             returns.append(rewards)
